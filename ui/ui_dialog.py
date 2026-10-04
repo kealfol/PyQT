@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Скомпилированный модуль диалогового окна для PyQt6.
-Светлая тема: белый фон, синие акценты.
+Светлая тема: белый фон, синие акценты. Исправлен цвет текста на Windows.
 """
 
 from PyQt6 import QtCore, QtGui, QtWidgets
@@ -43,9 +43,11 @@ class Ui_AddCredentialDialog(object):
 
         self.serviceLineEdit = QtWidgets.QLineEdit()
         self.serviceLineEdit.setPlaceholderText("Например: GitHub, Google, VK")
+        # ЯВНО задаём цвет текста и placeholder
         self.serviceLineEdit.setStyleSheet(
             "QLineEdit { background-color: #FFFFFF; color: #1A202C; "
             "border: 1px solid #CBD5E0; border-radius: 5px; padding: 5px; }"
+            "QLineEdit::placeholder { color: #A0AEC0; }"
         )
         self.serviceLineEdit.setObjectName("serviceLineEdit")
         self.formLayout.addRow(self.serviceLabel, self.serviceLineEdit)
@@ -59,6 +61,7 @@ class Ui_AddCredentialDialog(object):
         self.usernameLineEdit.setStyleSheet(
             "QLineEdit { background-color: #FFFFFF; color: #1A202C; "
             "border: 1px solid #CBD5E0; border-radius: 5px; padding: 5px; }"
+            "QLineEdit::placeholder { color: #A0AEC0; }"
         )
         self.usernameLineEdit.setObjectName("usernameLineEdit")
         self.formLayout.addRow(self.usernameLabel, self.usernameLineEdit)
@@ -91,6 +94,7 @@ class Ui_AddCredentialDialog(object):
         self.passwordLineEdit.setStyleSheet(
             "QLineEdit { background-color: #FFFFFF; color: #1A202C; "
             "border: 1px solid #CBD5E0; border-radius: 5px; padding: 5px; }"
+            "QLineEdit::placeholder { color: #A0AEC0; }"
         )
         self.passwordLineEdit.setObjectName("passwordLineEdit")
         self.passwordLayout.addWidget(self.passwordLineEdit)
@@ -125,9 +129,11 @@ class Ui_AddCredentialDialog(object):
         self.notesTextEdit = QtWidgets.QTextEdit()
         self.notesTextEdit.setPlaceholderText("Дополнительная информация (необязательно)")
         self.notesTextEdit.setMaximumHeight(80)
+        # ЯВНО задаём цвет текста для QTextEdit
         self.notesTextEdit.setStyleSheet(
             "QTextEdit { background-color: #FFFFFF; color: #1A202C; "
             "border: 1px solid #CBD5E0; border-radius: 5px; padding: 5px; }"
+            "QTextEdit::placeholder { color: #A0AEC0; }"
         )
         self.notesTextEdit.setObjectName("notesTextEdit")
         self.formLayout.addRow(self.notesLabel, self.notesTextEdit)

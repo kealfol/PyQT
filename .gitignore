@@ -16,7 +16,7 @@ securepass.db
 
 # PyInstaller
 build/
-#dist/
+dist/
 *.spec
 
 # IDE

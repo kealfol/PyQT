@@ -35,6 +35,32 @@ class AddCredentialDialog(QDialog):
         credential_id: int = None,
         parent=None
     ):
+        super().__init__(parent)
+        self.setWindowFlags(
+            self.windowFlags() & ~Qt.WindowType.WindowContextHelpButtonHint
+        )
+
+        # Инициализация UI
+        self.ui = Ui_AddCredentialDialog()
+        self.ui.setupUi(self)
+
+        self.db = db
+        self.crypto = crypto
+        self.credential_id = credential_id
+        self._password_visible = False
+        self.sound_manager = SoundManager()  # ДОБАВЛЕНА ЭТА СТРОКА
+
+        # Загрузка категорий
+        self._load_categories()
+
+        # Если редактируем - загружаем данные
+        if credential_id:
+            self._load_credential_data()
+            self.ui.titleLabel.setText("Редактирование записи")
+
+        # Подключение сигналов
+        self.ui.togglePasswordButton.clicked.connect(self._toggle_password_visibility)
+        self.ui.generateButton.clicked.connect(self._generate_password)
         """
         Инициализация диалога.
 
@@ -126,14 +152,17 @@ class AddCredentialDialog(QDialog):
         password = self.ui.passwordLineEdit.text().strip()
 
         if not service_name:
+            self.sound_manager.play_error()  # ДОБАВЛЕНА ЭТА СТРОКА
             QMessageBox.warning(self, "Ошибка", "Введите название сервиса")
             return
 
         if not username:
+            self.sound_manager.play_error()  # ДОБАВЛЕНА ЭТА СТРОКА
             QMessageBox.warning(self, "Ошибка", "Введите логин")
             return
 
         if not password:
+            self.sound_manager.play_error()  # ДОБАВЛЕНА ЭТА СТРОКА
             QMessageBox.warning(self, "Ошибка", "Введите пароль")
             return
 
@@ -161,10 +190,13 @@ class AddCredentialDialog(QDialog):
                     notes
                 )
 
+            self.sound_manager.play_success()  # ДОБАВЛЕНА ЭТА СТРОКА
             super().accept()
         except ValueError as e:
+            self.sound_manager.play_error()  # ДОБАВЛЕНА ЭТА СТРОКА
             QMessageBox.warning(self, "Ошибка валидации", str(e))
         except Exception as e:
+            self.sound_manager.play_error()  # ДОБАВЛЕНА ЭТА СТРОКА
             QMessageBox.critical(self, "Ошибка", f"Не удалось сохранить запись:\n{str(e)}")
 
 
@@ -324,28 +356,40 @@ class MainWindow(QMainWindow):
             self.ui.statusLabel.setText("Запись удалена")
 
     def _on_export_button_clicked(self) -> None:
-        """Экспортирует базу данных в выбранный файл."""
+        """Экспортирует БД и ключ шифрования в ZIP-архив."""
         file_path, _ = QFileDialog.getSaveFileName(
             self,
             "Экспорт базы данных",
             "",
-            "SQLite Database (*.db);;All Files (*)"
+            "ZIP Archive (*.zip);;All Files (*)"
         )
 
         if file_path:
             try:
-                shutil.copy(self.db.DB_FILE, file_path)
+                import zipfile
+                # Если пользователь не указал .zip, добавляем
+                if not file_path.endswith('.zip'):
+                    file_path += '.zip'
+
+                with zipfile.ZipFile(file_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                    # Добавляем БД
+                    zipf.write(self.db.DB_FILE, 'securepass.db')
+                    # Добавляем ключ шифрования
+                    if os.path.exists(CryptoManager.KEY_FILE):
+                        zipf.write(CryptoManager.KEY_FILE, 'secret.key')
+
                 QMessageBox.information(
                     self,
                     "Успех",
-                    f"База данных успешно экспортирована в:\n{file_path}"
+                    f"Резервная копия создана:\n{file_path}\n\n"
+                    "Включает базу данных и ключ шифрования."
                 )
-                self.ui.statusLabel.setText("База данных экспортирована")
+                self.ui.statusLabel.setText("Резервная копия создана")
             except Exception as e:
                 QMessageBox.critical(
                     self,
                     "Ошибка",
-                    f"Не удалось экспортировать базу данных:\n{str(e)}"
+                    f"Не удалось создать резервную копию:\n{str(e)}"
                 )
 
     def _on_generate_password_clicked(self) -> None:
@@ -551,6 +595,72 @@ class MainWindow(QMainWindow):
 def main():
     """Точка входа в приложение."""
     app = QApplication(sys.argv)
+
+    # Глобальный стиль для всего приложения
+    app.setStyleSheet("""
+        QLineEdit {
+            background-color: #FFFFFF;
+            color: #1A202C;
+            border: 1px solid #CBD5E0;
+            border-radius: 5px;
+            padding: 5px;
+        }
+        QLineEdit::placeholder {
+            color: #A0AEC0;
+        }
+        QTextEdit {
+            background-color: #FFFFFF;
+            color: #1A202C;
+            border: 1px solid #CBD5E0;
+            border-radius: 5px;
+            padding: 5px;
+        }
+        QTextEdit::placeholder {
+            color: #A0AEC0;
+        }
+        QComboBox {
+            background-color: #FFFFFF;
+            color: #1A202C;
+            border: 1px solid #CBD5E0;
+            border-radius: 5px;
+            padding: 5px;
+        }
+        QComboBox QAbstractItemView {
+            background-color: #FFFFFF;
+            color: #1A202C;
+            selection-background-color: #BEE3F8;
+        }
+        QPushButton {
+            background-color: #3182CE;
+            color: #FFFFFF;
+            border-radius: 5px;
+            padding: 8px 16px;
+        }
+        QPushButton:hover {
+            background-color: #2B6CB0;
+        }
+        QLabel {
+            color: #1A202C;
+        }
+        /* Стили для QMessageBox */
+        QMessageBox {
+            background-color: #F5F7FA;
+        }
+        QMessageBox QLabel {
+            color: #1A202C;
+        }
+        QMessageBox QPushButton {
+            background-color: #4A5568;
+            color: #FFFFFF;
+            border-radius: 5px;
+            padding: 6px 20px;
+            min-width: 80px;
+        }
+        QMessageBox QPushButton:hover {
+            background-color: #2D3748;
+        }
+    """)
+
     app.setStyle('Fusion')
 
     window = MainWindow()
