@@ -25,31 +25,31 @@
 securepass-manager/
 
 ── main.py — точка входа, главное окно
-│
+
 ├── database.py — работа с БД, CRUD-операции
-│
+
 ├── crypto_utils.py — шифрование и генерация паролей
-│
+
 ├── dialogs.py — диалоги (генератор паролей, о программе)
-│
+
 ├── utils.py — пути к ресурсам, воспроизведение звуков
-│
+
 ├── ui/
-│
+
 │ ├── init.py
-│
+
 │ ├── ui_main_window.py — интерфейс главного окна
-│
+
 │ └── ui_dialog.py — интерфейс диалога добавления записи
-│
+
 ├── assets/
-│
+
 │ ├── icons/
-│
+
 │ └── sounds/
-│
+
 ├── requirements.txt
-│
+
 └── README.md
 
 
